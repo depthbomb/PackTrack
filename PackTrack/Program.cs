@@ -64,7 +64,7 @@ namespace PackTrack
 			{
 				if (!File.Exists("ID.xml"))
 				{
-					Console.WriteLine("Please enter the UPS tracking ID of the package you want to track.");
+					Console.WriteLine("Please enter the UPS tracking ID of the delivery you want to track.");
 
 					GetInput:
 					Console.WriteLine();
@@ -113,7 +113,8 @@ namespace PackTrack
 
 			if (LastProgress != null && Progress != LastProgress)
 			{
-				ConsoleHelpers.FlashWindow(5, false);
+				// Continuously flash until brought to the foreground
+				ConsoleHelpers.FlashWindow(int.MaxValue, true);
 			}
 
 			LastProgress = Progress;
