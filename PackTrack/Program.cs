@@ -110,8 +110,6 @@ namespace PackTrack
 
 			Console.Clear();
 
-			Console.Title = "PackTrack";
-
 			var details = data.trackDetails[0];
 
 			if (LastActivity != null && LastActivity != details.shipmentProgressActivities[0].activityScan)
@@ -127,6 +125,7 @@ namespace PackTrack
 			WriteDivider();
 			Console.WriteLine();
 
+			Console.WriteLine("{0,-15}{1,-15}", "Delivery date:", details.scheduledDeliveryDate);
 			Console.WriteLine("{0,-15}{1,-15}", "Tracked time:", data.trackedDateTime);
 			Console.WriteLine("{0,-15}{1,-15}", "Status:", details.packageStatus);
 			Console.WriteLine("{0,-15}{1,-15}", "Delivery:", details.scheduledDeliveryDate);
@@ -152,6 +151,8 @@ namespace PackTrack
 			WriteProgressBar(details.progressBarPercentage);
 
 			Console.WriteLine();
+
+			Console.Title = $"PackTrack - {details.progressBarPercentage}%";
 
 			await Task.Delay(30000);
 
