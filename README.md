@@ -2,7 +2,7 @@
 
 ![Screenshot](https://i.imgur.com/vm8JCAB.png)
 
-Program I quickly whipped up to track the delivery status of my new computer. The status is retrieved every 30 seconds. The window will flash until brought to the foreground whenever the progress has changed, indicating new activity.
+Program I quickly whipped up to track the delivery status of my new computer. The status is retrieved every 30 seconds. You will be alerted via the window flashing and a toast notification whenever there is new activity.
 
 Requires **.NET Framework 4.8+**
 
