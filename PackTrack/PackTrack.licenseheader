@@ -15,10 +15,6 @@
 	
 	You should have received a copy of the GNU General Public License
 	along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-	====================================================================
-
-	%Namespace%/%FileName% created at %CreationMonth%/%CreationDay%/%CreationYear% %CreationTime% by %UserDisplayName%
 -->
 extensions: .cs .cpp .h
 #region License
@@ -38,9 +34,5 @@ extensions: .cs .cpp .h
 	
 	You should have received a copy of the GNU General Public License
 	along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-	====================================================================
-
-	%Namespace%/%FileName% created at %CreationMonth%/%CreationDay%/%CreationYear% %CreationTime% by %UserDisplayName%
 */
 #endregion License

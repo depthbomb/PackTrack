@@ -15,10 +15,6 @@
 	
 	You should have received a copy of the GNU General Public License
 	along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-	====================================================================
-
-	PackTrack.Models.Requests/GetStatusRequest.cs created at 5/20/2020 11:13 by a e
 */
 #endregion License
 

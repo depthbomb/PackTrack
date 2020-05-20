@@ -1,6 +1,6 @@
 # PackTrack
 
-![Screenshot](https://i.imgur.com/bI4p7oR.png)
+![Screenshot](https://i.imgur.com/vm8JCAB.png)
 
 Program I quickly whipped up to track the delivery status of my new computer.
 

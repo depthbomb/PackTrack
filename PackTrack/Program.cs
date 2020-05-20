@@ -15,10 +15,6 @@
 	
 	You should have received a copy of the GNU General Public License
 	along with this program. If not, see <https://www.gnu.org/licenses/>.
-
-	====================================================================
-
-	PackTrack/Program.cs created at 5/20/2020 10:25 by a e
 */
 #endregion License
 
@@ -123,30 +119,30 @@ namespace PackTrack
 			LastProgress = Progress;
 
 			WriteDivider();
-			Console.WriteLine("Package #{0}", details.trackingNumber);
+			Console.WriteLine("Delivery #{0}", details.trackingNumber);
 			WriteDivider();
 			Console.WriteLine();
 
-			Console.WriteLine("{0,-10}{1,-10}", "Status:", details.packageStatus);
-			Console.WriteLine("{0,-10}{1,-10}", "Delivery:", details.scheduledDeliveryDate);
-			Console.WriteLine("{0,-10}{1}{2}", "Weight:", details.additionalInformation.weight, details.additionalInformation.weightUnit);
+			Console.WriteLine("{0,-15}{1,-15}", "Tracked time:", data.trackedDateTime);
+			Console.WriteLine("{0,-15}{1,-15}", "Status:", details.packageStatus);
+			Console.WriteLine("{0,-15}{1,-15}", "Delivery:", details.scheduledDeliveryDate);
+			Console.WriteLine("{0,-15}{1}{2}", "Weight:", details.additionalInformation.weight, details.additionalInformation.weightUnit);
 
 			Console.WriteLine();
 
-			var activities = details.shipmentProgressActivities.ToList();
-				activities.RemoveAt(0);	//	Remove the first activity which is indeterminate
-
-			foreach (var activity in activities.ToArray())
+			foreach (var activity in details.shipmentProgressActivities)
 			{
-				Console.WriteLine(activity.activityScan);
-				Console.WriteLine("-".Repeat(activity.activityScan.Length));
-				Console.WriteLine("{0,-10}{1} {2}", "Date:", activity.date, activity.time);
-				if (activity.location != null)
+				if (activity.activityScan != null)
 				{
-					Console.WriteLine("{0,-10}{1}", "Location:", activity.location);
-				}
+					WriteSmallHeader(activity.activityScan);
+					Console.WriteLine("{0,-10}{1} {2}", "Date:", activity.date, activity.time);
+					if(activity.location != null)
+					{
+						Console.WriteLine("{0,-10}{1}", "Location:", activity.location);
+					}
 
-				Console.WriteLine();
+					Console.WriteLine();
+				}
 			}
 
 			WriteProgressBar(details.progressBarPercentage);
@@ -159,6 +155,13 @@ namespace PackTrack
 		}
 
 		#region Helpers
+		static void WriteSmallHeader(string header)
+		{
+			Console.WriteLine("-".Repeat(header.Length));
+			Console.WriteLine(header);
+			Console.WriteLine("-".Repeat(header.Length));
+		}
+
 		static void WriteProgressBar(string progress)
 		{
 			int percent = int.Parse(progress);
