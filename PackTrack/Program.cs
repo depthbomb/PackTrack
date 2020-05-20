@@ -25,6 +25,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Xml.Serialization;
+using Windows.UI.Notifications;
 
 using RestSharp;
 using CaprineNet.Common.Helpers;
@@ -38,8 +39,8 @@ namespace PackTrack
 {
 	class Program
 	{
-		static string Progress;
-		static string LastProgress;
+		static string LastActivity;
+
 		static string TrackingNumber;
 		static RestClient Client = new RestClient("https://www.ups.com");
 
@@ -96,6 +97,8 @@ namespace PackTrack
 		{
 			MakeRequest:
 
+			Console.Title = "Checking status...";
+
 			var request = new RestRequest("track/api/Track/GetStatus", DataFormat.Json);
 				request.AddJsonBody(new GetStatusRequest{ TrackingNumber = new string[] { TrackingNumber } });
 
@@ -107,17 +110,17 @@ namespace PackTrack
 
 			Console.Clear();
 
+			Console.Title = "PackTrack";
+
 			var details = data.trackDetails[0];
 
-			Progress = details.progressBarPercentage;
-
-			if (LastProgress != null && Progress != LastProgress)
+			if (LastActivity != null && LastActivity != details.shipmentProgressActivities[0].activityScan)
 			{
-				// Continuously flash until brought to the foreground
-				ConsoleHelpers.FlashWindow(int.MaxValue, true);
+				ConsoleHelpers.FlashWindow(5);
+				ShowToast("New Activity!", details.shipmentProgressActivities[0].activityScan);
 			}
 
-			LastProgress = Progress;
+			LastActivity = details.shipmentProgressActivities[0].activityScan;
 
 			WriteDivider();
 			Console.WriteLine("Delivery #{0}", details.trackingNumber);
@@ -158,9 +161,10 @@ namespace PackTrack
 		#region Helpers
 		static void WriteSmallHeader(string header)
 		{
-			Console.WriteLine("-".Repeat(header.Length));
+			string divider = "-".Repeat(header.Length);
+			Console.WriteLine(divider);
 			Console.WriteLine(header);
-			Console.WriteLine("-".Repeat(header.Length));
+			Console.WriteLine(divider);
 		}
 
 		static void WriteProgressBar(string progress)
@@ -197,6 +201,26 @@ namespace PackTrack
 
 				TrackingNumber = (serializer.Deserialize(sr) as IDModel).ID;
 			}
+		}
+
+		static void ShowToast(string title, string content)
+		{
+			Windows.Data.Xml.Dom.XmlDocument template;
+			Windows.Data.Xml.Dom.XmlNodeList textNodes;
+			Windows.Data.Xml.Dom.XmlNodeList imgNodes;
+
+			template = ToastNotificationManager.GetTemplateContent(ToastTemplateType.ToastImageAndText02);
+			textNodes = template.GetElementsByTagName("text");
+			textNodes[0].InnerText = title;
+			textNodes[1].InnerText = content;
+
+			imgNodes = template.GetElementsByTagName("image");
+			imgNodes[0].Attributes.GetNamedItem("src").NodeValue = Path.GetFullPath(@".\Assets\PackTrack.png");
+
+			var notifier = ToastNotificationManager.CreateToastNotifier("PackTrack");
+			var notification = new ToastNotification(template);
+
+			notifier.Show(notification);
 		}
 		#endregion
 	}
