@@ -104,55 +104,71 @@ namespace PackTrack
 
 			var response = Client.Post(request);
 
-			string json = response.Content;
-
-			var data = JsonSerializer.Deserialize<GetStatusResponse>(json);
-
-			Console.Clear();
-
-			var details = data.trackDetails[0];
-
-			if (LastActivity != null && LastActivity != details.shipmentProgressActivities[0].activityScan)
+			if (response.IsSuccessful)
 			{
-				ConsoleHelpers.FlashWindow(5);
-				ShowToast("New Activity!", details.shipmentProgressActivities[0].activityScan);
-			}
+				string json = response.Content;
 
-			LastActivity = details.shipmentProgressActivities[0].activityScan;
+				var data = JsonSerializer.Deserialize<GetStatusResponse>(json);
 
-			WriteDivider();
-			Console.WriteLine("Delivery #{0}", details.trackingNumber);
-			WriteDivider();
-			Console.WriteLine();
+				Console.Clear();
 
-			Console.WriteLine("{0,-15}{1,-15}", "Delivery date:", details.scheduledDeliveryDate);
-			Console.WriteLine("{0,-15}{1,-15}", "Tracked time:", data.trackedDateTime);
-			Console.WriteLine("{0,-15}{1,-15}", "Status:", details.packageStatus);
-			Console.WriteLine("{0,-15}{1,-15}", "Delivery:", details.scheduledDeliveryDate);
-			Console.WriteLine("{0,-15}{1}{2}", "Weight:", details.additionalInformation.weight, details.additionalInformation.weightUnit);
+				var details = data.trackDetails[0];
 
-			Console.WriteLine();
-
-			foreach (var activity in details.shipmentProgressActivities)
-			{
-				if (activity.activityScan != null)
+				if(LastActivity != null && LastActivity != details.shipmentProgressActivities[0].activityScan)
 				{
-					WriteSmallHeader(activity.activityScan);
-					Console.WriteLine("{0,-10}{1} {2}", "Date:", activity.date, activity.time);
-					if(activity.location != null)
-					{
-						Console.WriteLine("{0,-10}{1}", "Location:", activity.location);
-					}
-
-					Console.WriteLine();
+					ConsoleHelpers.FlashWindow(5);
+					ShowToast("New Activity!", details.shipmentProgressActivities[0].activityScan);
 				}
+
+				LastActivity = details.shipmentProgressActivities[0].activityScan;
+
+				WriteDivider();
+				Console.WriteLine("Delivery #{0}", details.trackingNumber);
+				WriteDivider();
+				Console.WriteLine();
+
+				Console.WriteLine("{0,-15}{1,-15}", "Delivery date:", details.scheduledDeliveryDate);
+				Console.WriteLine("{0,-15}{1,-15}", "Tracked time:", data.trackedDateTime);
+				Console.WriteLine("{0,-15}{1,-15}", "Status:", details.packageStatus);
+				Console.WriteLine("{0,-15}{1,-15}", "Delivery:", details.scheduledDeliveryDate);
+				Console.WriteLine("{0,-15}{1}{2}", "Weight:", details.additionalInformation.weight, details.additionalInformation.weightUnit);
+
+				Console.WriteLine();
+
+				var activities = details.shipmentProgressActivities;
+
+				foreach(var activity in activities)
+				{
+					if(activity.activityScan != null)
+					{
+						if (activities.ToList().FindAll(a => a.activityScan != null).IndexOf(activity) == 0)
+						{
+							Console.ForegroundColor = ConsoleColor.White;
+						}
+						else
+						{
+							Console.ForegroundColor = ConsoleColor.DarkGray;
+						}
+
+						Console.WriteLine(activity.activityScan);
+						Console.WriteLine("{0,-10}{1} {2}", "Date:", activity.date, activity.time);
+						if(activity.location != null)
+						{
+							Console.WriteLine("{0,-10}{1}", "Location:", activity.location);
+						}
+
+						Console.ResetColor();
+
+						Console.WriteLine("-".Repeat(24));
+					}
+				}
+
+				WriteProgressBar(details.progressBarPercentage);
+
+				Console.WriteLine();
+
+				Console.Title = $"PackTrack - {details.progressBarPercentage}%";
 			}
-
-			WriteProgressBar(details.progressBarPercentage);
-
-			Console.WriteLine();
-
-			Console.Title = $"PackTrack - {details.progressBarPercentage}%";
 
 			await Task.Delay(30000);
 
@@ -160,25 +176,20 @@ namespace PackTrack
 		}
 
 		#region Helpers
-		static void WriteSmallHeader(string header)
-		{
-			string divider = "-".Repeat(header.Length);
-			Console.WriteLine(divider);
-			Console.WriteLine(header);
-			Console.WriteLine(divider);
-		}
-
 		static void WriteProgressBar(string progress)
 		{
 			int percent = int.Parse(progress);
 			string bar = new string('█', percent);
-			string barSpace = new string(' ', 100 - percent);
+			string barSpace = new string('█', 100 - percent);
 
-			Console.Write("Progress: {0}% [", progress);
+			Console.WriteLine();
+			Console.Write("Progress ");
 			Console.ForegroundColor = ConsoleColor.Green;
-			Console.Write("{0}{1}", bar, barSpace);
+			Console.Write(bar);
+			Console.ForegroundColor = ConsoleColor.DarkGray;
+			Console.Write(barSpace);
 			Console.ResetColor();
-			Console.Write("]");
+			Console.Write(" {0}%", progress);
 		}
 
 		static void WriteDivider() => Console.WriteLine("-".Repeat(Console.BufferWidth - 1));
