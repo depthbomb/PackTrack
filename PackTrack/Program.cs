@@ -39,14 +39,13 @@ namespace PackTrack
 {
 	class Program
 	{
-		static string LastActivity;
-
+		static int NumActivities = 0;
 		static string TrackingNumber;
 		static RestClient Client = new RestClient("https://www.ups.com");
 
 		static async Task Main(string[] args)
 		{
-			Console.Title = "PackTrack";
+			SetTitle("PackTrack", false);
 			ConsoleHelpers.DisableMaximize();
 			ConsoleHelpers.SetFixedSize(150, 40);
 
@@ -97,7 +96,7 @@ namespace PackTrack
 		{
 			MakeRequest:
 
-			Console.Title = "Checking status...";
+			SetTitle("Checking status...");
 
 			var request = new RestRequest("track/api/Track/GetStatus", DataFormat.Json);
 				request.AddJsonBody(new GetStatusRequest{ TrackingNumber = new string[] { TrackingNumber } });
@@ -114,17 +113,18 @@ namespace PackTrack
 
 				var details = data.trackDetails[0];
 
-				if(LastActivity != null && LastActivity != details.shipmentProgressActivities[0].activityScan)
+				if(NumActivities != 0 && NumActivities < details.shipmentProgressActivities.Length)
 				{
 					ConsoleHelpers.FlashWindow(5);
 					ShowToast("New Activity!", details.shipmentProgressActivities[0].activityScan);
 				}
 
-				LastActivity = details.shipmentProgressActivities[0].activityScan;
+				NumActivities = details.shipmentProgressActivities.Length;
 
 				WriteDivider();
 				Console.WriteLine("Delivery #{0}", details.trackingNumber);
 				WriteDivider();
+
 				Console.WriteLine();
 
 				Console.WriteLine("{0,-15}{1,-15}", "Delivery date:", details.scheduledDeliveryDate);
@@ -133,49 +133,59 @@ namespace PackTrack
 				Console.WriteLine("{0,-15}{1,-15}", "Delivery:", details.scheduledDeliveryDate);
 				Console.WriteLine("{0,-15}{1}{2}", "Weight:", details.additionalInformation.weight, details.additionalInformation.weightUnit);
 
-				Console.WriteLine();
+				Console.WriteLine("\n");
 
-				var activities = details.shipmentProgressActivities;
+				var activities = details.shipmentProgressActivities
+					.Where(a => a.activityScan != null)
+					.Take(6)
+					.ToList();
 
 				foreach(var activity in activities)
 				{
-					if(activity.activityScan != null)
+					if(activities.IndexOf(activity) != 0)
 					{
-						if (activities.ToList().FindAll(a => a.activityScan != null).IndexOf(activity) == 0)
-						{
-							Console.ForegroundColor = ConsoleColor.White;
-						}
-						else
-						{
-							Console.ForegroundColor = ConsoleColor.DarkGray;
-						}
-
-						Console.WriteLine(activity.activityScan);
-						Console.WriteLine("{0,-10}{1} {2}", "Date:", activity.date, activity.time);
-						if(activity.location != null)
-						{
-							Console.WriteLine("{0,-10}{1}", "Location:", activity.location);
-						}
-
-						Console.ResetColor();
-
-						Console.WriteLine("-".Repeat(24));
+						Console.ForegroundColor = ConsoleColor.DarkGray;
 					}
+
+					Console.WriteLine(activity.activityScan);
+					Console.WriteLine("{0,-10}{1} {2}", "Date:", activity.date, activity.time);
+					if(activity.location != null)
+					{
+						Console.WriteLine("{0,-10}{1}", "Location:", activity.location);
+					}
+
+					Console.ResetColor();
+
+					Console.WriteLine("-".Repeat(24));
 				}
 
 				WriteProgressBar(details.progressBarPercentage);
 
 				Console.WriteLine();
 
-				Console.Title = $"PackTrack - {details.progressBarPercentage}%";
+				for(int i = 30; i >= 0; i--)
+				{
+					SetTitle($"Refreshing in {i} {(i != 1 ? "seconds" : "second")}");
+					await Task.Delay(1000);
+				}
 			}
-
-			await Task.Delay(30000);
 
 			goto MakeRequest;
 		}
 
 		#region Helpers
+		static void SetTitle(string title, bool withPrefix = true)
+		{
+			if (withPrefix)
+			{
+				Console.Title = $"PackTrack | {title}";
+			}
+			else
+			{
+				Console.Title = title;
+			}
+		}
+
 		static void WriteProgressBar(string progress)
 		{
 			int percent = int.Parse(progress);
@@ -227,7 +237,7 @@ namespace PackTrack
 			textNodes[1].InnerText = content;
 
 			imgNodes = template.GetElementsByTagName("image");
-			imgNodes[0].Attributes.GetNamedItem("src").NodeValue = Path.GetFullPath(@".\Assets\PackTrack.png");
+			imgNodes[0].Attributes.GetNamedItem("src").NodeValue = Path.GetFullPath(@"Assets\NewActivity.png");
 
 			var notifier = ToastNotificationManager.CreateToastNotifier("PackTrack");
 			var notification = new ToastNotification(template);

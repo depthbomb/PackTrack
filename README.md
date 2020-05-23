@@ -1,6 +1,6 @@
 # PackTrack
 
-![Screenshot](https://i.imgur.com/lNvHoFT.png)
+![Screenshot](https://i.imgur.com/AoPYMDp.png)
 
 Program I quickly whipped up to track the delivery status of my new computer. The status is retrieved every 30 seconds. You will be alerted via the window flashing and a toast notification whenever there is new activity.
 
